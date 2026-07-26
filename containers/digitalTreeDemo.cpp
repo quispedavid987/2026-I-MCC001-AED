@@ -1,6 +1,8 @@
 #include <iostream>
 #include <string>
 #include <cstddef>
+#include <fstream>
+#include <ostream>
 
 using namespace std;
 using TI = int;
@@ -22,19 +24,19 @@ private:
     TrieNode* root;
 
     // Función recursiva que dibuja el árbol
-    void printHelper(TrieNode* node, string prefix, bool isLastChild, char nodeChar) {
+    void printHelper(TrieNode* node, string prefix, bool isLastChild, char nodeChar, ostream& os) {
         // 1. Imprimir la sangría acumulada y el conector del nodo actual
-        cout << prefix;
+        os << prefix;
         if (isLastChild) {
-            cout << "\\-- ";
+            os << "\\-- ";
             prefix += "    "; // Si es el último, los hijos debajo solo llevan espacios (4 espacios)
         } else {
-            cout << "|-- ";
+            os << "|-- ";
             prefix += "|   "; // Si no es el último, los hijos debajo necesitan la barra vertical
         }
         
         // 2. Imprimir el caracter y el asterisco si forma una palabra
-        cout << nodeChar << (node->isEndOfWord ? "*" : "") << "\n";
+        os << nodeChar << (node->isEndOfWord ? "*" : "") << "\n";
 
         // 3. Buscar cuál es el último hijo válido de este nodo
         TI lastChildIndex = -1;
@@ -43,12 +45,12 @@ private:
                 lastChildIndex = i;
             }
         }
-        
+
         // 4. Llamada recursiva para todos los hijos existentes
         for (size_t i = 0; i < 26; i++) {
             if (node->children[i] != nullptr) {
                 // Pasamos 'true' si el índice actual coincide con el último hijo encontrado
-                printHelper(node->children[i], prefix, i == lastChildIndex, i + 'a');
+                printHelper(node->children[i], prefix, i == lastChildIndex, i + 'a', os);
             }
         }
     }
@@ -71,8 +73,8 @@ public:
     }
 
     // Interfaz pública para imprimir el árbol
-    void print() {
-        cout << "(root)\n";
+    void print(ostream& os) {
+        os << "(root)\n";
         
         // Determinar cuál es el último hijo directo de la raíz
         TI lastChildIndex = -1;
@@ -85,7 +87,7 @@ public:
         // Iniciar la recursión para cada hijo de la raíz
         for (size_t i = 0; i < 26; i++) {
             if (root->children[i] != nullptr) {
-                printHelper(root->children[i], "", i == lastChildIndex, i + 'a');
+                printHelper(root->children[i], "", i == lastChildIndex, i + 'a', os);
             }
         }
     }
@@ -105,8 +107,17 @@ int main() {
 
 
     // Imprimimos el árbol
-    miTrie->print();
+    miTrie->print(cout);
 
+    ofstream file("digitalTreePrint.txt");
+    if (file.is_open()) {
+        miTrie->print(file);
+        file.close();
+        cout << "Guardado con exito...." << endl;
+    }
+    else {
+        cerr << "Error al abrir el archivo." << endl;
+    }
     // Liberación de memoria 
     delete miTrie; 
     return 0;
